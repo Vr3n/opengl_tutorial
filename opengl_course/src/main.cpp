@@ -5,28 +5,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <fstream>
+#include <sstream>
+#include <streambuf>
+#include <string>
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+std::string loadShaderSrc(const char* filename);
 
 int main()
 {
-
-	// glm test.
-	glm::vec4 vec(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::mat4 trans = glm::mat4(1.0f); // identity Matrix.
-
-	//trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-	vec = trans * vec;
-
-	// rotation.
-	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-
-	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-
-	vec = trans * vec;
-
-	std::cout << vec.x << " " << vec.y << " " << vec.z << std::endl;
+	int success;
+	char infoLog[512];
 
 	glfwInit();
 	// Define the open gl version. ours is 4.0
@@ -60,6 +52,66 @@ int main()
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+
+	/*
+		Shaders.
+	*/
+
+	// Compile Vertex Shader.
+	unsigned int vertexShader;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	std::string vertShaderSrc = loadShaderSrc("assets/vertex_core.glsl");
+	const GLchar* vertShader = vertShaderSrc.c_str();
+	glShaderSource(vertexShader, 1, &vertShader, NULL);
+	glCompileShader(vertexShader);
+
+	// Catch error.
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "Error with vertex shader compilation: " << std::endl << infoLog << std::endl;
+	}
+
+	// Compile Vertex Shader.
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	std::string fragShaderSrc = loadShaderSrc("assets/fragment_core.glsl");
+	const GLchar* fragShader = fragShaderSrc.c_str();
+	glShaderSource(fragmentShader, 1, &fragShader, NULL);
+	glCompileShader(fragmentShader);
+
+	// Catch error.
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "Error with fragment shader compilation: " << std::endl << infoLog << std::endl;
+	}
+
+
+	unsigned int shaderProgram;
+	shaderProgram = glCreateProgram();
+
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	// Catch error.
+	glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
+		std::cout << "Error with shader program: " << std::endl << infoLog << std::endl;
+	}
+
+	// deleting the shaders as we have linked them.
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
@@ -92,3 +144,28 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 	}
 }
+
+std::string loadShaderSrc(const char* filename)
+{
+	std::ifstream file;
+	std::stringstream buf;
+
+	std::string ret = "";
+
+	file.open(filename);
+
+	if (file.is_open())
+	{
+		buf << file.rdbuf();
+		ret = buf.str();
+	}
+	else
+	{
+		std::cout << "Could not open " << filename << std::endl;
+	}
+
+	file.close();
+
+	return ret;
+}
+
