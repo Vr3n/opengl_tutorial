@@ -100,7 +100,7 @@ int main()
 
 
 	// Generating Textures.
-	unsigned int texture1;
+	unsigned int texture1, texture2;
 
 	stbi_set_flip_vertically_on_load(true);
 	glGenTextures(1, &texture1);
@@ -136,8 +136,33 @@ int main()
 
 	stbi_image_free(data);
 
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	data = stbi_load("assets/bg_texture.jpg", &width, &height, &nChannels, 0);
+
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(
+			GL_TEXTURE_2D
+		);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+
 	shader.activate();
 	shader.setInt("texture1", 0);
+	shader.setInt("texture2", 1);
+
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	shader.activate();
+	shader.setMat4("transform", trans);
 
 	shader2.activate();
 
@@ -149,6 +174,8 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		shader.activate();
 
@@ -157,8 +184,13 @@ int main()
 
 		// drawing shapes.
 		glUseProgram(shader.id);
-		shader.activate();
+		float timeValue = glfwGetTime() * 40.0f;
+		float blueValue = (sin(timeValue) / 6.0f) + 0.5f;
+		shader.set4Float("ourColor", 0.0f, 0.0f, blueValue, 1.0f);
+		trans = glm::rotate(trans, glm::radians(timeValue / 100), glm::vec3(0.1f, 0.1f, 0.1f));
+		shader.setMat4("transform", trans);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		shader.activate();
 
 		//shader2.activate();
 		//glUseProgram(shader2.id);
