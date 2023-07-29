@@ -22,5 +22,9 @@ public:
 
 	// uniform functions.
 	void setMat4(const std::string& name, glm::mat4 val);
+	void setInt(const std::string& name, int val);
+	void setBool(const std::string& name, bool val);
+	void setFloat(const std::string& name, float val);
+	void set4Float(const std::string& name, float val1, float val2, float val3, float val4);
 };
 
