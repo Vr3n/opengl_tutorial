@@ -13,6 +13,8 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+float mixVal = 0.5f;
+
 int main()
 {
 	glfwInit();
@@ -184,13 +186,15 @@ int main()
 
 		// drawing shapes.
 		glUseProgram(shader.id);
-		float timeValue = glfwGetTime() * 40.0f;
-		float blueValue = (sin(timeValue) / 6.0f) + 0.5f;
-		shader.set4Float("ourColor", 0.0f, 0.0f, blueValue, 1.0f);
-		trans = glm::rotate(trans, glm::radians(timeValue / 100), glm::vec3(0.1f, 0.1f, 0.1f));
-		shader.setMat4("transform", trans);
+		//float timeValue = glfwGetTime() * 40.0f;
+		//float blueValue = (sin(timeValue) / 6.0f) + 0.5f;
+		//shader.set4Float("ourColor", 0.0f, 0.0f, blueValue, 1.0f);
+		//trans = glm::rotate(trans, glm::radians(timeValue / 100), glm::vec3(0.1f, 0.1f, 0.1f));
+		//shader.setMat4("transform", trans);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		shader.activate();
+
+		shader.setFloat("mixVal", mixVal);
 
 		//shader2.activate();
 		//glUseProgram(shader2.id);
@@ -224,6 +228,26 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	// change the mix value.
+	
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{	
+		mixVal += 0.05f;
+		if (mixVal > 1)
+		{
+			mixVal = 1.0f;
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{	
+		mixVal -= 0.05f;
+		if (mixVal < 0)
+		{
+			mixVal = 0.0f;
+		}
 	}
 }
 
