@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lib\stb.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\shader.cpp" />
@@ -30,6 +31,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\bg_texture.jpg" />
+    <Image Include="assets\chungus.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
