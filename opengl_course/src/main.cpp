@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <string>
-#include "shader_util.h"
+#include "shader.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -49,59 +49,9 @@ int main()
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+	Shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
+	Shader shader2("assets/vertex_core.glsl", "assets/fragment_core2.glsl");
 
-	/*
-		Shaders.
-	*/
-
-	// Compile Vertex Shader.
-	unsigned int vertexShader;
-	compileShader(vertexShader, "assets/vertex_core.glsl", GL_VERTEX_SHADER);
-
-	// Compile fragment Shader.
-	unsigned int fragmentShader;
-	compileShader(fragmentShader, "assets/fragment_core.glsl", GL_FRAGMENT_SHADER);
-
-	// Compile fragment Shader 2.
-	unsigned int fragmentShader2;
-	compileShader(fragmentShader2, "assets/fragment_core2.glsl", GL_FRAGMENT_SHADER);
-
-
-	unsigned int shaderPrograms[2];
-	shaderPrograms[0] = glCreateProgram();
-
-	glAttachShader(shaderPrograms[0], vertexShader);
-	glAttachShader(shaderPrograms[0], fragmentShader);
-	glLinkProgram(shaderPrograms[0]);
-
-	// Catch error.
-	glGetProgramiv(shaderPrograms[0], GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(shaderPrograms[0], 512, NULL, infoLog);
-		std::cout << "Error with shader program: " << std::endl << infoLog << std::endl;
-	}
-
-	shaderPrograms[1] = glCreateProgram();
-
-	glAttachShader(shaderPrograms[1], vertexShader);
-	glAttachShader(shaderPrograms[1], fragmentShader);
-	glLinkProgram(shaderPrograms[1]);
-
-	// Catch error.
-	glGetProgramiv(shaderPrograms[1], GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(shaderPrograms[0], 512, NULL, infoLog);
-		std::cout << "Error with shader program: " << std::endl << infoLog << std::endl;
-	}
-
-	// deleting the shaders as we have linked them.
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	glDeleteShader(fragmentShader2);
 
 	// vertex array.
 	// NDC: Normalized Device Coordinates
@@ -147,34 +97,42 @@ int main()
 	glEnableVertexAttribArray(1);
 
 	glm::mat4 trans = glm::mat4(1.0f);
+	glm::mat4 trans2 = glm::mat4(1.0f);
 
 	trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	glUseProgram(shaderPrograms[0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(trans));
+	shader.activate();
+	shader.setMat4("transform", trans);
+
+
+	trans2 = glm::scale(trans2, glm::vec3(1.5f));
+	trans2 = glm::rotate(trans2, glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	shader2.activate();
+	shader2.setMat4("transform", trans);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		trans = glm::rotate(
-			trans,
-			glm::radians((float)glfwGetTime() / 100.0f),
-			glm::vec3(0.0f, 0.0f, 1.0f)
-		);
-		glUniformMatrix4fv(glGetUniformLocation(shaderPrograms[0], "transform"), 1, GL_FALSE, glm::value_ptr(trans));
 
+		trans = glm::rotate(trans, glm::radians((float)glfwGetTime() / 100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		shader.activate();
+		shader.setMat4("transform", trans);
 
 		// rendering commands.
 		glBindVertexArray(VAO);
 
 		// drawing shapes.
-		glUseProgram(shaderPrograms[0]);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glUseProgram(shader.id);
+		shader.activate();
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-		//glUseProgram(shaderPrograms[1]);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(13 * sizeof(unsigned int)));
+		trans2 = glm::rotate(trans2, glm::radians((float)glfwGetTime() / -100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		shader2.activate();
+		shader2.setMat4("transform", trans2);
+		glUseProgram(shader2.id);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(3 * sizeof(GLuint)));
+		
 
 
 		// send new frame to window.
