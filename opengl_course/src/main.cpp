@@ -8,12 +8,18 @@
 
 #include <string>
 #include "shader.h"
+#include "io/keyboard.h"
+#include "io/mouse.h"
+#include "io/joystick.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 float mixVal = 0.5f;
+
+glm::mat4 mouseTransform = glm::mat4(1.0f);
+Joystick mainJ(0);
 
 int main()
 {
@@ -48,6 +54,11 @@ int main()
 	glViewport(0, 0, 800, 600);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	glfwSetKeyCallback(window, Keyboard::keyCallback);
+	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
+	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
+	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
 
 	Shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
 	Shader shader2("assets/vertex_core.glsl", "assets/fragment_core2.glsl");
@@ -168,6 +179,17 @@ int main()
 
 	shader2.activate();
 
+	mainJ.update();
+
+	if (mainJ.isPresent())
+	{
+		std::cout << mainJ.getName() << " is present." << std::endl;
+	}
+	else
+	{
+		std::cout << "Not present." << std::endl;
+	}
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
@@ -186,21 +208,10 @@ int main()
 
 		// drawing shapes.
 		glUseProgram(shader.id);
-		//float timeValue = glfwGetTime() * 40.0f;
-		//float blueValue = (sin(timeValue) / 6.0f) + 0.5f;
-		//shader.set4Float("ourColor", 0.0f, 0.0f, blueValue, 1.0f);
-		//trans = glm::rotate(trans, glm::radians(timeValue / 100), glm::vec3(0.1f, 0.1f, 0.1f));
-		//shader.setMat4("transform", trans);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		shader.activate();
 
 		shader.setFloat("mixVal", mixVal);
-
-		//shader2.activate();
-		//glUseProgram(shader2.id);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(3 * sizeof(GLuint)));
-		
-
 
 		// send new frame to window.
 		glfwSwapBuffers(window);
@@ -225,14 +236,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void processInput(GLFWwindow* window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (Keyboard::key(GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
 
 	// change the mix value.
-	
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	if (Keyboard::keyDown(GLFW_KEY_UP))
 	{	
 		mixVal += 0.05f;
 		if (mixVal > 1)
@@ -241,7 +251,7 @@ void processInput(GLFWwindow* window)
 		}
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	if (Keyboard::keyDown(GLFW_KEY_DOWN))
 	{	
 		mixVal -= 0.05f;
 		if (mixVal < 0)
@@ -249,5 +259,7 @@ void processInput(GLFWwindow* window)
 			mixVal = 0.0f;
 		}
 	}
+
+	mainJ.update();
 }
 
