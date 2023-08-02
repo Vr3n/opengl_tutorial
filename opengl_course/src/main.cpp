@@ -17,11 +17,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 float mixVal = 0.5f;
+float fov = 50.0f;
 
 glm::mat4 mouseTransform = glm::mat4(1.0f);
 Joystick mainJ(0);
 
 glm::mat4 transform = glm::mat4(1.0f);
+
+unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
+float x, y, z;
 
 int main()
 {
@@ -34,7 +38,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif // __APPLE__
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Learn Open GL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Learn Open GL", NULL, NULL);
 
 	if (window == NULL)
 	{
@@ -53,7 +57,7 @@ int main()
 	}
 
 	// Set Initial viewport size.
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -62,31 +66,62 @@ int main()
 	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
 	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
 
+	glEnable(GL_DEPTH_TEST);
+
 	Shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
-	Shader shader2("assets/vertex_core.glsl", "assets/fragment_core2.glsl");
 
 
 	// vertex array.
 	// NDC: Normalized Device Coordinates
 	float vertices[] = {
-		// positions			colors				texture
-		-0.5f, -0.5f, 0.0f,	    1.0f, 1.0f, 0.5f,   0.0f, 0.0f, 	// bottom left
-		-0.5f,  0.5f, 0.0f,	    0.5f, 1.0f, 0.75f,	0.0f, 1.0f,		// top left
-		 0.5f, -0.5f, 0.0f,	    0.6f, 1.0f, 0.2f,	1.0f, 0.0f,		// bottom right
-		 0.5f,  0.5f, 0.0f,	    1.0f, 0.2f, 1.0f,	1.0f, 1.0f,		// top right
-	};
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-	unsigned int indices[] = {
-		0, 1, 2, 
-		3, 1, 2
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	// VAO, VBO.
 
-	unsigned int VAO, VBO, EBO;
-	glGenVertexArrays(1, &VAO);
+	unsigned int VAO, VBO;
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, &VAO);
 
 	// bind VAO;
 	glBindVertexArray(VAO);
@@ -97,25 +132,17 @@ int main()
 
 
 	// set attribute pointer.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 
-	// setup ebo.
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	// color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
 	// texture coordinates.
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 
 	// Generating Textures.
-	unsigned int texture1, texture2;
+	unsigned int texture1;
 
 	stbi_set_flip_vertically_on_load(true);
 	glGenTextures(1, &texture1);
@@ -134,27 +161,7 @@ int main()
 	// load img.
 	int width, height, nChannels;
 
-	unsigned char* data = stbi_load("assets/chungus.png", &width, &height, &nChannels, 0);
-
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(
-			GL_TEXTURE_2D
-		);
-
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-
-	stbi_image_free(data);
-
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	data = stbi_load("assets/bg_texture.jpg", &width, &height, &nChannels, 0);
+	unsigned char* data = stbi_load("assets/bg_texture.jfif", &width, &height, &nChannels, 0);
 
 	if (data)
 	{
@@ -162,6 +169,7 @@ int main()
 		glGenerateMipmap(
 			GL_TEXTURE_2D
 		);
+
 	}
 	else
 	{
@@ -170,14 +178,14 @@ int main()
 
 	stbi_image_free(data);
 
+
 	shader.activate();
 	shader.setInt("texture1", 0);
-	shader.setInt("texture2", 1);
 
-	shader.setMat4("transform", transform);
-	shader.activate();
-
-	shader2.activate();
+	
+	x = 0.0f;
+	y = 0.0f;
+	z = 3.0f;
 
 	mainJ.update();
 
@@ -194,25 +202,32 @@ int main()
 	{
 		processInput(window);
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		// create transformation coordinaties
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection = glm::mat4(1.0f);
+
+		model = glm::rotate(model, (float) (glfwGetTime() / 10.0) * glm::radians(-55.0f), glm::vec3(0.5f));
+		view = glm::translate(view, glm::vec3(-x, -y, -z));
+		projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
 		shader.activate();
+		shader.setMat4("model", model);
+		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
 
 		// rendering commands.
 		glBindVertexArray(VAO);
+		shader.activate();
 
 		// drawing shapes.
 		glUseProgram(shader.id);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		shader.activate();
-
-		shader.setMat4("transform", transform);
-		shader.setFloat("mixVal", mixVal);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// send new frame to window.
 		glfwSwapBuffers(window);
@@ -220,7 +235,6 @@ int main()
 	}
 
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 
 	glfwTerminate();
@@ -233,11 +247,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	// Reset everytime we reize the window.
 	glViewport(0, 0, width, height);
+	SCR_WIDTH = width;
+	SCR_HEIGHT = height;
 }
 
 void processInput(GLFWwindow* window)
 {
-	if (Keyboard::key(GLFW_KEY_ESCAPE))
+	if (Keyboard::key(GLFW_KEY_ESCAPE) || mainJ.buttonState(GLFW_JOYSTICK_SELECT) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
@@ -287,34 +303,34 @@ void processInput(GLFWwindow* window)
 	float lx = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X);
 	float ly = -mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y);
 
+
+	//float rt = mainJ.axesState(GLFW_JOYSTICK_TRIGGER_RIGHT) / 2 + 0.5f;
+	//float lt = mainJ.axesState(GLFW_JOYSTICK_TRIGGER_LEFT) / 2 + 0.5f;
+
 	float rt = mainJ.axesState(GLFW_JOYSTICK_AXES_RIGHT_TRIGGER) / 2 + 0.5f;
 	float lt = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_TRIGGER) / 2 + 0.5f;
 
 
-	std::cout << "rt: " << rt << std::endl;
-	if (std::abs(rt) > 0.5f)
-	{
-		transform = glm::scale(transform, glm::vec3(1 + rt / 10, 1 + rt / 10, 0.0f));
-		std::cout << rt << std::endl;
-	}
-
-	if (std::abs(lt) > 0.5f)
-	{
-		transform = glm::scale(transform, glm::vec3(1 - lt / 10, 1 -  lt / 10, 0.0f));
-		std::cout << lt << std::endl;
-	}
-
 	if (std::abs(lx) > 0.5f)
 	{
-		transform = glm::translate(transform, glm::vec3(lx / 20, 0.0f, 0.0f));
-		std::cout << lx << std::endl;
+		x += -lx / 50.0f;
 	}
 
 	if (std::abs(ly) > 0.5f)
 	{
-		transform = glm::translate(transform, glm::vec3(0.0f, ly / 20,0.0f));
-		std::cout << ly << std::endl;
+		y += -ly / 50.0f;
 	}
+
+	if (std::abs(lt) > 0.6f)
+	{
+		fov += 0.1f;
+	}
+
+	if (std::abs(rt) > 0.6f)
+	{
+		fov -= 0.1f;
+	}
+
 
 }
 
