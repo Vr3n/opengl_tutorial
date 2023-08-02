@@ -8,12 +8,20 @@
 
 #include <string>
 #include "shader.h"
+#include "io/keyboard.h"
+#include "io/mouse.h"
+#include "io/joystick.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 float mixVal = 0.5f;
+
+glm::mat4 mouseTransform = glm::mat4(1.0f);
+Joystick mainJ(0);
+
+glm::mat4 transform = glm::mat4(1.0f);
 
 int main()
 {
@@ -48,6 +56,11 @@ int main()
 	glViewport(0, 0, 800, 600);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	glfwSetKeyCallback(window, Keyboard::keyCallback);
+	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
+	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
+	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
 
 	Shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
 	Shader shader2("assets/vertex_core.glsl", "assets/fragment_core2.glsl");
@@ -161,12 +174,21 @@ int main()
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	shader.setMat4("transform", transform);
 	shader.activate();
-	shader.setMat4("transform", trans);
 
 	shader2.activate();
+
+	mainJ.update();
+
+	if (mainJ.isPresent())
+	{
+		std::cout << mainJ.getName() << " is present." << std::endl;
+	}
+	else
+	{
+		std::cout << "Not present." << std::endl;
+	}
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -186,21 +208,11 @@ int main()
 
 		// drawing shapes.
 		glUseProgram(shader.id);
-		//float timeValue = glfwGetTime() * 40.0f;
-		//float blueValue = (sin(timeValue) / 6.0f) + 0.5f;
-		//shader.set4Float("ourColor", 0.0f, 0.0f, blueValue, 1.0f);
-		//trans = glm::rotate(trans, glm::radians(timeValue / 100), glm::vec3(0.1f, 0.1f, 0.1f));
-		//shader.setMat4("transform", trans);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		shader.activate();
 
+		shader.setMat4("transform", transform);
 		shader.setFloat("mixVal", mixVal);
-
-		//shader2.activate();
-		//glUseProgram(shader2.id);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(3 * sizeof(GLuint)));
-		
-
 
 		// send new frame to window.
 		glfwSwapBuffers(window);
@@ -225,14 +237,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void processInput(GLFWwindow* window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (Keyboard::key(GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
 
 	// change the mix value.
-	
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	if (Keyboard::keyDown(GLFW_KEY_UP))
 	{	
 		mixVal += 0.05f;
 		if (mixVal > 1)
@@ -241,7 +252,7 @@ void processInput(GLFWwindow* window)
 		}
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	if (Keyboard::keyDown(GLFW_KEY_DOWN))
 	{	
 		mixVal -= 0.05f;
 		if (mixVal < 0)
@@ -249,5 +260,61 @@ void processInput(GLFWwindow* window)
 			mixVal = 0.0f;
 		}
 	}
+
+
+	if (Keyboard::key(GLFW_KEY_W))
+	{
+		transform = glm::translate(transform, glm::vec3(0.0f, 0.0075f, 0.0f));
+	}
+
+	if (Keyboard::key(GLFW_KEY_S))
+	{
+		transform = glm::translate(transform, glm::vec3(0.0f, -0.075f, 0.0f));
+	}
+
+	if (Keyboard::key(GLFW_KEY_A))
+	{
+		transform = glm::translate(transform, glm::vec3(-0.075f, 0.0f, 0.0f));
+	}
+
+	if (Keyboard::key(GLFW_KEY_D))
+	{
+		transform = glm::translate(transform, glm::vec3(0.075f, 0.0f, 0.0f));
+	}
+
+	mainJ.update();
+
+	float lx = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X);
+	float ly = -mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y);
+
+	float rt = mainJ.axesState(GLFW_JOYSTICK_AXES_RIGHT_TRIGGER) / 2 + 0.5f;
+	float lt = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_TRIGGER) / 2 + 0.5f;
+
+
+	std::cout << "rt: " << rt << std::endl;
+	if (std::abs(rt) > 0.5f)
+	{
+		transform = glm::scale(transform, glm::vec3(1 + rt / 10, 1 + rt / 10, 0.0f));
+		std::cout << rt << std::endl;
+	}
+
+	if (std::abs(lt) > 0.5f)
+	{
+		transform = glm::scale(transform, glm::vec3(1 - lt / 10, 1 -  lt / 10, 0.0f));
+		std::cout << lt << std::endl;
+	}
+
+	if (std::abs(lx) > 0.5f)
+	{
+		transform = glm::translate(transform, glm::vec3(lx / 20, 0.0f, 0.0f));
+		std::cout << lx << std::endl;
+	}
+
+	if (std::abs(ly) > 0.5f)
+	{
+		transform = glm::translate(transform, glm::vec3(0.0f, ly / 20,0.0f));
+		std::cout << ly << std::endl;
+	}
+
 }
 
