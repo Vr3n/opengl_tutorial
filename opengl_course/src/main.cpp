@@ -329,8 +329,6 @@ void processInput(GLFWwindow* window, double dt)
 
 	double dx = Mouse::getDx(), dy = Mouse::getDy();
 
-	std::cout << "dx: " << dx << std::endl;
-	std::cout << "dy: " << dy << std::endl;
 
 	if (dx != 0 || dy != 0)
 	{
