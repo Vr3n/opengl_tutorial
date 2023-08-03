@@ -81,7 +81,7 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
-	Shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
+	Shader shader("assets/object.vs", "assets/object.fs");
 
 
 	// vertex array.
@@ -273,25 +273,6 @@ void processInput(GLFWwindow* window, double dt)
 	if (Keyboard::key(GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(window, true);
-	}
-
-	// change the mix value.
-	if (Keyboard::keyDown(GLFW_KEY_UP))
-	{	
-		mixVal += 0.05f;
-		if (mixVal > 1)
-		{
-			mixVal = 1.0f;
-		}
-	}
-
-	if (Keyboard::keyDown(GLFW_KEY_DOWN))
-	{	
-		mixVal -= 0.05f;
-		if (mixVal < 0)
-		{
-			mixVal = 0.0f;
-		}
 	}
 
 	// moving cameras[activeCam].

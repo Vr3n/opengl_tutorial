@@ -12,8 +12,8 @@ Camera::Camera(glm::vec3 position) :
 
 void Camera::updateCameraDirection(double dx, double dy)
 {
-	yaw += -dx;
-	pitch += dy;
+	yaw += -dx * 5;
+	pitch += dy * 5;
 
 	if (pitch > 89.0f)
 	{

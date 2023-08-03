@@ -13,8 +13,12 @@ class Shader
 {
 public:
 	unsigned int id;
+
+	Shader();
 	Shader(const char* vertexShaderPath, const char* fragmentShaderPath);
 	void activate();
+
+	void generate(const char* vertexShaderPath, const char* fragShaderPath);
 
 	// utility functions.
 	std::string loadShaderSrc(const char* filepath);
