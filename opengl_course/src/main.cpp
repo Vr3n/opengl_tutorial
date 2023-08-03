@@ -8,6 +8,7 @@
 
 #include <string>
 #include "graphics/shader.h"
+#include "graphics/texture.h"
 #include "io/keyboard.h"
 #include "io/mouse.h"
 #include "io/joystick.h"
@@ -141,45 +142,14 @@ int main()
 
 
 	// Generating Textures.
-	unsigned int texture1;
-
-	stbi_set_flip_vertically_on_load(true);
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-
-	// load img.
-	int width, height, nChannels;
-
-	unsigned char* data = stbi_load("assets/bg_texture.jfif", &width, &height, &nChannels, 0);
-
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(
-			GL_TEXTURE_2D
-		);
-
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-
-	stbi_image_free(data);
-
+	Texture texture1("assets/bg_texture.jfif", "texture1");
+	texture1.load();
+	//Texture texture2("assets/black_hole.jpg", "texture2");
+	//texture2.load();
 
 	shader.activate();
-	shader.setInt("texture1", 0);
+	shader.setInt("texture1", texture1.id);
+	//shader.setInt("texture2", texture2.id);
 
 	mainJ.update();
 
@@ -201,9 +171,7 @@ int main()
 		processInput(deltaTime);
 
 		screen.update();
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		texture1.activate();
 
 		// create transformation coordinaties
 		glm::mat4 model = glm::mat4(1.0f);
