@@ -12,7 +12,7 @@ Camera::Camera(glm::vec3 position) :
 
 void Camera::updateCameraDirection(double dx, double dy)
 {
-	yaw += dx;
+	yaw += -dx;
 	pitch += dy;
 
 	if (pitch > 89.0f)
@@ -23,6 +23,7 @@ void Camera::updateCameraDirection(double dx, double dy)
 	{
 		pitch = -89.0f;
 	}
+	updateCameraVectors();
 }
 
 void Camera::updateCameraPos(CameraDirection dir, double dt)
@@ -73,6 +74,7 @@ void Camera::updateCameraZoom(double dy)
 	{
 		zoom = 45.0f;
 	}
+	updateCameraVectors();
 }
 
 glm::mat4 Camera::getViewMatrix()

@@ -11,10 +11,11 @@
 #include "io/keyboard.h"
 #include "io/mouse.h"
 #include "io/joystick.h"
+#include "io/camera.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, double dt);
 
 float mixVal = 0.5f;
 float fov = 50.0f;
@@ -26,6 +27,10 @@ glm::mat4 transform = glm::mat4(1.0f);
 
 unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
 float x, y, z;
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 int main()
 {
@@ -65,6 +70,8 @@ int main()
 	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
 	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
 	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -200,7 +207,11 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		processInput(window);
+		double currTime = glfwGetTime();
+		deltaTime = (double) currTime - lastFrame;
+		lastFrame = (double) currTime;
+
+		processInput(window, deltaTime);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -213,8 +224,8 @@ int main()
 		glm::mat4 projection = glm::mat4(1.0f);
 
 		model = glm::rotate(model, (float) (glfwGetTime() / 10.0) * glm::radians(-55.0f), glm::vec3(0.5f));
-		view = glm::translate(view, glm::vec3(-x, -y, -z));
-		projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		view = camera.getViewMatrix();
+		projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
 		shader.activate();
 		shader.setMat4("model", model);
@@ -251,9 +262,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	SCR_HEIGHT = height;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, double dt)
 {
-	if (Keyboard::key(GLFW_KEY_ESCAPE) || mainJ.buttonState(GLFW_JOYSTICK_SELECT) == GLFW_PRESS)
+	if (Keyboard::key(GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
@@ -277,60 +288,54 @@ void processInput(GLFWwindow* window)
 		}
 	}
 
-
+	// moving camera.
 	if (Keyboard::key(GLFW_KEY_W))
 	{
-		transform = glm::translate(transform, glm::vec3(0.0f, 0.0075f, 0.0f));
+		camera.updateCameraPos(CameraDirection::FORWARD, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_S))
 	{
-		transform = glm::translate(transform, glm::vec3(0.0f, -0.075f, 0.0f));
+		camera.updateCameraPos(CameraDirection::BACKWARD, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_A))
 	{
-		transform = glm::translate(transform, glm::vec3(-0.075f, 0.0f, 0.0f));
+		camera.updateCameraPos(CameraDirection::RIGHT, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_D))
 	{
-		transform = glm::translate(transform, glm::vec3(0.075f, 0.0f, 0.0f));
+		camera.updateCameraPos(CameraDirection::LEFT, dt);
 	}
 
-	mainJ.update();
 
-	float lx = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X);
-	float ly = -mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y);
-
-
-	//float rt = mainJ.axesState(GLFW_JOYSTICK_TRIGGER_RIGHT) / 2 + 0.5f;
-	//float lt = mainJ.axesState(GLFW_JOYSTICK_TRIGGER_LEFT) / 2 + 0.5f;
-
-	float rt = mainJ.axesState(GLFW_JOYSTICK_AXES_RIGHT_TRIGGER) / 2 + 0.5f;
-	float lt = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_TRIGGER) / 2 + 0.5f;
-
-
-	if (std::abs(lx) > 0.5f)
+	if (Keyboard::key(GLFW_KEY_SPACE))
 	{
-		x += -lx / 50.0f;
+		camera.updateCameraPos(CameraDirection::DOWN, dt);
 	}
 
-	if (std::abs(ly) > 0.5f)
+	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT))
 	{
-		y += -ly / 50.0f;
+		camera.updateCameraPos(CameraDirection::UP, dt);
 	}
 
-	if (std::abs(lt) > 0.6f)
+	double dx = Mouse::getDx(), dy = Mouse::getDy();
+
+	std::cout << "dx: " << dx << std::endl;
+	std::cout << "dy: " << dy << std::endl;
+
+	if (dx != 0 || dy != 0)
 	{
-		fov += 0.1f;
+		camera.updateCameraDirection(dx, dy);
 	}
 
-	if (std::abs(rt) > 0.6f)
+	double scrollDy = Mouse::getScrollDy();
+
+	if (scrollDy != 0)
 	{
-		fov -= 0.1f;
+		camera.updateCameraZoom(scrollDy);
 	}
-
 
 }
 
