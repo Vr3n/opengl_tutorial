@@ -25,8 +25,9 @@
     <ClCompile Include="src\io\joystick.cpp" />
     <ClCompile Include="src\io\keyboard.cpp" />
     <ClCompile Include="src\io\mouse.cpp" />
+    <ClCompile Include="src\io\screen.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\shader.cpp" />
+    <ClCompile Include="src\graphics\shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\object.fs" />
@@ -37,7 +38,8 @@
     <ClInclude Include="src\io\joystick.h" />
     <ClInclude Include="src\io\keyboard.h" />
     <ClInclude Include="src\io\mouse.h" />
-    <ClInclude Include="src\shader.h" />
+    <ClInclude Include="src\graphics\shader.h" />
+    <ClInclude Include="src\io\screen.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\bg_texture.jpg" />

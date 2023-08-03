@@ -38,6 +38,8 @@ public:
 	void updateCameraDirection(double dx, double dy);
 	void updateCameraPos(CameraDirection dir, double dt);
 	void updateCameraZoom(double dy);
+
+	float getZoom();
 	
 	glm::mat4 getViewMatrix();
 

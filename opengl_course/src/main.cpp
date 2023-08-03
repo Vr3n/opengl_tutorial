@@ -7,15 +7,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <string>
-#include "shader.h"
+#include "graphics/shader.h"
 #include "io/keyboard.h"
 #include "io/mouse.h"
 #include "io/joystick.h"
 #include "io/camera.h"
+#include "io/screen.h"
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window, double dt);
+void processInput(double dt);
 
 float mixVal = 0.5f;
 float fov = 50.0f;
@@ -38,6 +38,8 @@ Camera cameras[2] = {
 
 int activeCam = 0;
 
+Screen screen;
+
 int main()
 {
 	glfwInit();
@@ -49,16 +51,12 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif // __APPLE__
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Learn Open GL", NULL, NULL);
-
-	if (window == NULL)
+	if (!screen.init())
 	{
 		std::cout << "Failed to create GLFW Window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
-
-	glfwMakeContextCurrent(window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -67,19 +65,7 @@ int main()
 		return -1;
 	}
 
-	// Set Initial viewport size.
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	glfwSetKeyCallback(window, Keyboard::keyCallback);
-	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
-	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
-	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
-
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-	glEnable(GL_DEPTH_TEST);
+	screen.setParameters();
 
 	Shader shader("assets/object.vs", "assets/object.fs");
 
@@ -195,11 +181,6 @@ int main()
 	shader.activate();
 	shader.setInt("texture1", 0);
 
-	
-	x = 0.0f;
-	y = 0.0f;
-	z = 3.0f;
-
 	mainJ.update();
 
 	if (mainJ.isPresent())
@@ -211,15 +192,15 @@ int main()
 		std::cout << "Not present." << std::endl;
 	}
 
-	while (!glfwWindowShouldClose(window))
+	while (!screen.shouldClose())
 	{
 		double currTime = glfwGetTime();
 		deltaTime = (double) currTime - lastFrame;
 		lastFrame = (double) currTime;
 
-		processInput(window, deltaTime);
+		processInput(deltaTime);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		screen.update();
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -231,7 +212,7 @@ int main()
 
 		model = glm::rotate(model, (float) (glfwGetTime() / 10.0) * glm::radians(-55.0f), glm::vec3(0.5f));
 		view = cameras[activeCam].getViewMatrix();
-		projection = glm::perspective(glm::radians(cameras[activeCam].zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(cameras[activeCam].getZoom()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
 		shader.activate();
 		shader.setMat4("model", model);
@@ -247,8 +228,7 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// send new frame to window.
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		screen.newFrame();
 	}
 
 	glDeleteVertexArrays(1, &VAO);
@@ -260,19 +240,11 @@ int main()
 }
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	// Reset everytime we reize the window.
-	glViewport(0, 0, width, height);
-	SCR_WIDTH = width;
-	SCR_HEIGHT = height;
-}
-
-void processInput(GLFWwindow* window, double dt)
+void processInput(double dt)
 {
 	if (Keyboard::key(GLFW_KEY_ESCAPE))
 	{
-		glfwSetWindowShouldClose(window, true);
+		screen.setShouldClose(true);
 	}
 
 	// moving cameras[activeCam].
