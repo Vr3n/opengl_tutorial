@@ -49,11 +49,11 @@ void Camera::updateCameraPos(CameraDirection dir, double dt)
 		break;
 
 	case CameraDirection::UP:
-		cameraPos += cameraUp * velocity;
+		cameraPos += worldUp * velocity;
 		break;
 
 	case CameraDirection::DOWN:
-		cameraPos -= cameraUp * velocity;
+		cameraPos -= worldUp * velocity;
 		break;
 
 	}
