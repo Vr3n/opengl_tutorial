@@ -5,7 +5,7 @@ Camera::Camera(glm::vec3 position) :
 	worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 	yaw(-90.0f),
 	speed(2.5f),
-	sensitivity(5.0f),
+	sensitivity(10.0f),
 	zoom(45.0f),
 	cameraFront(glm::vec3(0.0f, 0.0f, -1.0f))
 {
@@ -16,8 +16,8 @@ Camera::Camera(glm::vec3 position) :
 // mouse movement.
 void Camera::updateCameraDirection(double dx, double dy)
 {
-	yaw += -dx * sensitivity;
-	pitch += dy * sensitivity;
+	yaw += dx * sensitivity;
+	pitch += -dy * sensitivity;
 
 	if (pitch > 89.0f)
 	{
