@@ -25,7 +25,7 @@ void Shader::generate(const char* vertexShaderPath, const char* fragmentShaderPa
 
 	if (!success)
 	{
-		glGetShaderInfoLog(id, 512, NULL, infoLog);
+		glGetProgramInfoLog(id, 512, NULL, infoLog);
 		std::cout << "Shader Linking error: " << std::endl << infoLog << std::endl;
 	}
 
@@ -50,7 +50,7 @@ GLuint Shader::compileShader(const char* filepath, GLenum shaderType)
 	if (!success)
 	{
 		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << (shaderType == GL_VERTEX_SHADER ? "Error with vertex shader compilation: " : "Error with Fragment shader compilation:") << std::endl << infoLog << std::endl;
+		std::cout << "Error with shader compilation: " << std::endl << infoLog << std::endl;
 	}
 
 	return shader_name;

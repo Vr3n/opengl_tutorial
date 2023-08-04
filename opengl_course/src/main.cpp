@@ -36,8 +36,6 @@ int main() {
 	int success;
 	char infoLog[512];
 
-	std::cout << "Hello, OpenGL!" << std::endl;
-
 	glfwInit();
 
 	// openGL version 3.3
@@ -69,10 +67,10 @@ int main() {
 	Shader lampShader("assets/object.vs", "assets/lamp.fs");
 
 	// MODELS==============================
-	Cube cube(Material::mix(Material::emerald, Material::gold, 0.7), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
+	Cube cube(Material::gold, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
 	cube.init();
 
-	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.f), glm::vec3(2.0f));
+	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.0f), glm::vec3(2.0f));
 	lamp.init();
 
 	mainJ.update();
@@ -96,16 +94,10 @@ int main() {
 		shader.activate();
 
 		shader.setFloat("mixVal", mixVal);
-		shader.set3Float("light.position", lamp.pos);
 		shader.set3Float("viewPos", Camera::defaultCamera.cameraPos);
 
 		// set light strengths
-		shader.set3Float("light.ambient", lamp.ambient);
-		shader.set3Float("light.diffuse", lamp.diffuse);
-		shader.set3Float("light.specular", lamp.specular);
-
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		lamp.pointLight.render(shader);
 
 		// create transformation
 		glm::mat4 view = glm::mat4(1.0f);
@@ -124,6 +116,9 @@ int main() {
 		lampShader.setMat4("view", view);
 		lampShader.setMat4("projection", projection);
 		lamp.render(lampShader);
+
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// send new frame to window
 		screen.newFrame();

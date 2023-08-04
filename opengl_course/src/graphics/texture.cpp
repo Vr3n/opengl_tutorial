@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-int Texture::currentId = 0;
+int Texture::currentId = 1;
 
 Texture::Texture() {}
 

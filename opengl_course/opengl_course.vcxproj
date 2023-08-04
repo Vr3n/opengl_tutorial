@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="lib\stb.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\graphics\light.cpp" />
     <ClCompile Include="src\graphics\material.cpp" />
     <ClCompile Include="src\graphics\mesh.cpp" />
     <ClCompile Include="src\graphics\model.cpp" />
@@ -39,6 +40,7 @@
     <None Include="assets\object.vs" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\graphics\light.h" />
     <ClInclude Include="src\graphics\material.h" />
     <ClInclude Include="src\graphics\mesh.h" />
     <ClInclude Include="src\graphics\model.h" />
@@ -53,10 +55,15 @@
     <ClInclude Include="src\io\screen.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="assets\batman.png" />
+    <Image Include="assets\batman_spec.jpg" />
     <Image Include="assets\bg_texture.jfif" />
     <Image Include="assets\bg_texture.jpg" />
+    <Image Include="assets\bg_texture_copy.jfif" />
     <Image Include="assets\black_hole.jpg" />
     <Image Include="assets\chungus.png" />
+    <Image Include="assets\interstellar_bg.jpg" />
+    <Image Include="assets\interstellar_bg_spec.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

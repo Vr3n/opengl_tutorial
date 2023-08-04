@@ -66,7 +66,12 @@ public:
             indices[i] = i;
         }
 
-        mesh = Mesh(Vertex::genList(vertices, noVertices), indices);
+        Texture space("assets/batman.png", "material.diffuse");
+        space.load();
+        Texture space_spec("assets/batman_spec.jpg", "material.specular");
+        space_spec.load();
+
+        mesh = Mesh(Vertex::genList(vertices, noVertices), indices, { space, space_spec });
     }
 
     void render(Shader shader) {
@@ -76,9 +81,12 @@ public:
         //model = glm::rotate(model, (float)glfwGetTime() * glm::radians(-55.0f), glm::vec3(0.5f, 0.5f, 0.5f));
         shader.setMat4("model", model);
 
+        mesh.textures[0].activate();
+        mesh.textures[1].activate();
+
         shader.set3Float("material.ambient", material.ambient);
-        shader.set3Float("material.diffuse", material.diffuse);
-        shader.set3Float("material.specular", material.specular);
+        //shader.set3Float("material.diffuse", material.diffuse);
+        //shader.set3Float("material.specular", material.specular);
         shader.setFloat("material.shininess", material.shininess);
 
         Model::render(shader);
