@@ -10,6 +10,7 @@
 #include "graphics/shader.h"
 #include "graphics/texture.h"
 #include "graphics/models/cube.hpp"
+#include "graphics/models/lamp.hpp"
 #include "io/keyboard.h"
 #include "io/mouse.h"
 #include "io/joystick.h"
@@ -70,10 +71,13 @@ int main()
 	screen.setParameters();
 
 	Shader shader("assets/object.vs", "assets/object.fs");
+	Shader lampShader("assets/object.vs", "assets/lamp.fs");
 
-	Cube cube(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
+	Cube cube(Material::gold , glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
 	cube.init();
 
+	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-1.0f, -0.5f, -0.5f), glm::vec3(0.25f));
+	lamp.init();
 
 
 	mainJ.update();
@@ -98,6 +102,12 @@ int main()
 		screen.update();
 
 		shader.activate();
+		shader.set3Float("light.position", lamp.pos);
+		shader.set3Float("viewPos", cameras[activeCam].cameraPos);
+
+		shader.set3Float("light.ambient", lamp.ambient);
+		shader.set3Float("light.diffuse", lamp.diffuse);
+		shader.set3Float("light.specular", lamp.specular);
 
 		// create transformation coordinaties
 		glm::mat4 view = glm::mat4(1.0f);
@@ -106,15 +116,21 @@ int main()
 		view = cameras[activeCam].getViewMatrix();
 		projection = glm::perspective(glm::radians(cameras[activeCam].getZoom()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-		shader.activate();
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
 
 		cube.render(shader);
+		lampShader.activate();
+		lampShader.setMat4("view", view);
+		lampShader.setMat4("projection", projection);
+		lamp.render(lampShader);
 
 		// send new frame to window.
 		screen.newFrame();
 	}
+
+	cube.cleanup();
+	lamp.cleanup();
 
 	glfwTerminate();
 

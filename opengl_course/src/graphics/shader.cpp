@@ -1,4 +1,5 @@
 #include "shader.h"
+#include <vector>
 
 Shader::Shader () {}
 
@@ -25,7 +26,7 @@ void Shader::generate(const char* vertexShaderPath, const char* fragmentShaderPa
 	if (!success)
 	{
 		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << "Error with vertex shader compilation: " << std::endl << infoLog << std::endl;
+		std::cout << "Shader Linking error: " << std::endl << infoLog << std::endl;
 	}
 
 	glDeleteShader(vertexShader);
@@ -44,12 +45,12 @@ GLuint Shader::compileShader(const char* filepath, GLenum shaderType)
 	glShaderSource(shader_name, 1, &vertShader, NULL);
 	glCompileShader(shader_name);
 
-	glGetProgramiv(id, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 
 	if (!success)
 	{
 		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << "Error with vertex shader compilation: " << std::endl << infoLog << std::endl;
+		std::cout << (shaderType == GL_VERTEX_SHADER ? "Error with vertex shader compilation: " : "Error with Fragment shader compilation:") << std::endl << infoLog << std::endl;
 	}
 
 	return shader_name;
@@ -109,4 +110,12 @@ void Shader::set4Float(const std::string& name, float val1,float val2,float val3
 void Shader::setBool(const std::string& name, bool val)
 {
 	glUniform1i(glGetUniformLocation(id, name.c_str()), (int) val);
+}
+
+void Shader::set3Float(const std::string& name, float v1, float v2, float v3) {
+	glUniform3f(glGetUniformLocation(id, name.c_str()), v1, v2, v3);
+}
+
+void Shader::set3Float(const std::string& name, glm::vec3 v) {
+	glUniform3f(glGetUniformLocation(id, name.c_str()), v.x, v.y, v.z);
 }

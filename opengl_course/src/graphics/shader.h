@@ -30,5 +30,7 @@ public:
 	void setBool(const std::string& name, bool val);
 	void setFloat(const std::string& name, float val);
 	void set4Float(const std::string& name, float val1, float val2, float val3, float val4);
+	void set3Float(const std::string& name, glm::vec3 v);
+	void set3Float(const std::string& name, float v1, float v2, float v3);
 };
 
