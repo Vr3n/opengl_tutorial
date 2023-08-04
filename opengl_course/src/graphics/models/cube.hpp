@@ -66,9 +66,9 @@ public:
             indices[i] = i;
         }
 
-        Texture space("assets/batman.png", "material.diffuse");
+        Texture space("assets/spiderman.png", "material.diffuse");
         space.load();
-        Texture space_spec("assets/batman_spec.jpg", "material.specular");
+        Texture space_spec("assets/spiderman_spec.png", "material.specular");
         space_spec.load();
 
         mesh = Mesh(Vertex::genList(vertices, noVertices), indices, { space, space_spec });

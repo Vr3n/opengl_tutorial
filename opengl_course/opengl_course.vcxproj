@@ -64,6 +64,8 @@
     <Image Include="assets\chungus.png" />
     <Image Include="assets\interstellar_bg.jpg" />
     <Image Include="assets\interstellar_bg_spec.jpg" />
+    <Image Include="assets\spiderman.png" />
+    <Image Include="assets\spiderman_spec.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

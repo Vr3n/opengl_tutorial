@@ -128,5 +128,11 @@
     <Image Include="assets\batman_spec.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="assets\spiderman.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\spiderman_spec.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
