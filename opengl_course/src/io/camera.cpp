@@ -3,17 +3,21 @@
 Camera::Camera(glm::vec3 position) : 
 	cameraPos(position), 
 	worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-	yaw(-90.0f), speed(2.5f),
+	yaw(-90.0f),
+	speed(2.5f),
+	sensitivity(5.0f),
 	zoom(45.0f),
 	cameraFront(glm::vec3(0.0f, 0.0f, -1.0f))
 {
 	updateCameraVectors();
 }
 
+
+// mouse movement.
 void Camera::updateCameraDirection(double dx, double dy)
 {
-	yaw += -dx * 5;
-	pitch += dy * 5;
+	yaw += -dx * sensitivity;
+	pitch += dy * sensitivity;
 
 	if (pitch > 89.0f)
 	{
@@ -49,11 +53,11 @@ void Camera::updateCameraPos(CameraDirection dir, double dt)
 		break;
 
 	case CameraDirection::UP:
-		cameraPos += worldUp * velocity;
+		cameraPos += cameraUp * velocity;
 		break;
 
 	case CameraDirection::DOWN:
-		cameraPos -= worldUp * velocity;
+		cameraPos -= cameraUp * velocity;
 		break;
 
 	}
@@ -74,7 +78,6 @@ void Camera::updateCameraZoom(double dy)
 	{
 		zoom = 45.0f;
 	}
-	updateCameraVectors();
 }
 
 glm::mat4 Camera::getViewMatrix()
@@ -92,9 +95,4 @@ void Camera::updateCameraVectors()
 
 	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
 	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
-}
-
-float Camera::getZoom()
-{
-	return zoom;
 }
