@@ -72,9 +72,26 @@ int main() {
 	Cube cube(Material::gold, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
 	cube.init();
 
-	DirLight dirLight = { glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.1f), glm::vec3(0.4f), glm::vec3(0.75f) };
+	//DirLight dirLight = { glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.1f), glm::vec3(0.4f), glm::vec3(0.75f) };
 
-	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.0f), glm::vec3(2.0f));
+	SpotLight spotLight = {
+		Camera::defaultCamera.cameraPos,
+		Camera::defaultCamera.cameraFront,
+		glm::cos(glm::radians(12.5f)),
+		glm::cos(glm::radians(20.0f)),
+		glm::vec3(0.0f),
+		glm::vec3(1.0f),
+		glm::vec3(1.0f),
+		1.0f,
+		0.07f,
+		0.032f
+	};
+
+	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.0f), glm::vec3(2.0f),
+		1.0f,
+		0.07f,
+		0.032f
+		);
 	lamp.init();
 
 	mainJ.update();
@@ -100,13 +117,17 @@ int main() {
 		shader.setFloat("mixVal", mixVal);
 		shader.set3Float("viewPos", Camera::defaultCamera.cameraPos);
 
-		dirLight.direction = glm::vec3(
-			glm::rotate(glm::mat4(1.0f), glm::radians(0.5f), glm::vec3(1.0f, 1.0f, 1.0f)) 
-			 * glm::vec4(dirLight.direction, 1.0f));
+		//dirLight.direction = glm::vec3(
+		//	glm::rotate(glm::mat4(1.0f), glm::radians(5.0f), glm::vec3(1.0f, 1.0f, 1.0f)) 
+		//	 * glm::vec4(dirLight.direction, 1.0f));
+
+		spotLight.position = Camera::defaultCamera.cameraPos;
+		spotLight.direction = Camera::defaultCamera.cameraFront;
+		spotLight.render(shader);
 
 		// set light strengths
 		//lamp.pointLight.render(shader);
-		dirLight.render(shader);
+		//dirLight.render(shader);
 
 		// create transformation
 		glm::mat4 view = glm::mat4(1.0f);

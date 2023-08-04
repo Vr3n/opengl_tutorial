@@ -18,9 +18,12 @@ public:
 		glm::vec3 diffuse,
 		glm::vec3 specular,
 		glm::vec3 pos,
-		glm::vec3 size
+		glm::vec3 size,
+		float k0,
+		float k1,
+		float k2
 	) : lightColor(lightColor),
-		pointLight({ pos, ambient, diffuse, specular }),
+		pointLight({ pos, ambient, diffuse, specular, k0, k1, k2 }),
 		Cube(Material::white_plastic, pos, size) 
 	{ }
 
