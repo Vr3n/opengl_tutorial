@@ -25,12 +25,12 @@ Material Material::red_rubber = { glm::vec3(0.05, 0.0, 0.0), glm::vec3(0.5, 0.4,
 Material Material::white_rubber = { glm::vec3(0.05, 0.05, 0.05), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0.7, 0.7, 0.7), .078125 };
 Material Material::yellow_rubber = { glm::vec3(0.05, 0.05, 0.0), glm::vec3(0.5, 0.5, 0.4), glm::vec3(0.7, 0.7, 0.04), .078125 };
 
-Material Material::mix(Material m1, Material m2, float mix)
-{
+Material Material::mix(Material m1, Material m2, float mix) {
 	return {
 		m1.ambient * mix + m2.ambient * (1 - mix),
 		m1.diffuse * mix + m2.diffuse * (1 - mix),
 		m1.specular * mix + m2.specular * (1 - mix),
 		m1.shininess * mix + m2.shininess * (1 - mix)
 	};
+
 }
