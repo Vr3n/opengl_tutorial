@@ -34,6 +34,9 @@ Camera Camera::defaultCamera(glm::vec3(0.0f, 0.0f, 3.0f));
 double deltaTime = 0.0f; // tme btwn frames
 double lastFrame = 0.0f; // time of last frame
 
+
+bool lightBulbOn = true;
+
 int main() {
 	int success;
 	char infoLog[512];
@@ -165,10 +168,17 @@ int main() {
 		}
 		shader.setInt("noPointLights", 4);
 
-		spotLight.position = Camera::defaultCamera.cameraPos;
-		spotLight.direction = Camera::defaultCamera.cameraFront;
-		spotLight.render(shader, 0);
-		shader.setInt("noSpotLights", 1);
+		if (lightBulbOn)
+		{
+			spotLight.position = Camera::defaultCamera.cameraPos;
+			spotLight.direction = Camera::defaultCamera.cameraFront;
+			spotLight.render(shader, 0);
+			shader.setInt("noSpotLights", 1);
+		}
+		else {
+			shader.setInt("noSpotLights", 0);
+		}
+
 
 		// create transformation
 		glm::mat4 view = glm::mat4(1.0f);
@@ -269,5 +279,10 @@ void processInput(double deltaTime) {
 	if (scrollDy != 0)
 	{
 		Camera::defaultCamera.updateCameraZoom(scrollDy);
+	}
+
+	if (Keyboard::keyDown(GLFW_KEY_F))
+	{
+		lightBulbOn = !lightBulbOn;
 	}
 }
