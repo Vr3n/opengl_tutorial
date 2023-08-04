@@ -18,6 +18,7 @@ public:
 		glm::vec3 ambient,
 		glm::vec3 diffuse,
 		glm::vec3 specular,
+		glm::vec3 pos,
 		glm::vec3 size
 	) : lightColor(lightColor), ambient(ambient), diffuse(diffuse), specular(specular),
 		Cube(Material::white_plastic, pos, size) 

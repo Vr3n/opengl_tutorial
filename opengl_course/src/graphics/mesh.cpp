@@ -43,12 +43,12 @@ void Mesh::render(Shader shader)
 	for (unsigned int i = 0; i < textures.size(); i++)
 	{
 		shader.setInt(textures[i].name, textures[i].id);
-		glActiveTexture(GL_TEXTURE0 + i);
+		textures[i].activate();
 		textures[i].bind();
 	}
 
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, vertices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
 	glActiveTexture(GL_TEXTURE0);

@@ -1,68 +1,62 @@
 #include <iostream>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h> 
-#include <stb/stb_image.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <GLFW/glfw3.h>
 
 #include <string>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "graphics/shader.h"
 #include "graphics/texture.h"
+#include "graphics/model.h"
+
 #include "graphics/models/cube.hpp"
 #include "graphics/models/lamp.hpp"
+
 #include "io/keyboard.h"
 #include "io/mouse.h"
 #include "io/joystick.h"
-#include "io/camera.h"
 #include "io/screen.h"
+#include "io/camera.h"
 
-
-void processInput(double dt);
+void processInput(double deltaTime);
 
 float mixVal = 0.5f;
-float fov = 50.0f;
-
-glm::mat4 mouseTransform = glm::mat4(1.0f);
-Joystick mainJ(0);
-
-glm::mat4 transform = glm::mat4(1.0f);
-
-unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
-float x, y, z;
-
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-Camera cameras[2] = {
-	Camera(glm::vec3(0.0f, 0.0f, 3.0f)),
-	Camera(glm::vec3(10.0f, 10.0f, 10.0f))
-};
-
-int activeCam = 0;
 
 Screen screen;
 
-int main()
-{
-	glfwInit();
-	// Define the open gl version. ours is 4.0
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif // __APPLE__
+Joystick mainJ(0);
+Camera Camera::defaultCamera(glm::vec3(0.0f, 0.0f, 3.0f));
 
-	if (!screen.init())
-	{
-		std::cout << "Failed to create GLFW Window" << std::endl;
+double deltaTime = 0.0f; // tme btwn frames
+double lastFrame = 0.0f; // time of last frame
+
+int main() {
+	int success;
+	char infoLog[512];
+
+	std::cout << "Hello, OpenGL!" << std::endl;
+
+	glfwInit();
+
+	// openGL version 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+# ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COPMPAT, GL_TRUE);
+#endif
+
+	if (!screen.init()) {
+		std::cout << "Could not open window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		glfwTerminate();
 		return -1;
@@ -70,112 +64,116 @@ int main()
 
 	screen.setParameters();
 
+	// SHADERS===============================
 	Shader shader("assets/object.vs", "assets/object.fs");
 	Shader lampShader("assets/object.vs", "assets/lamp.fs");
 
-	Cube cube(Material::emerald , glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
+	// MODELS==============================
+	Cube cube(Material::mix(Material::emerald, Material::gold, 0.7), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
 	cube.init();
 
-	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-6.0f, -0.0f, -1.f), glm::vec3(1.0f));
+	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.f), glm::vec3(2.0f));
 	lamp.init();
 
-
 	mainJ.update();
-
-	if (mainJ.isPresent())
-	{
+	if (mainJ.isPresent()) {
 		std::cout << mainJ.getName() << " is present." << std::endl;
 	}
-	else
-	{
-		std::cout << "Not present." << std::endl;
-	}
 
-	while (!screen.shouldClose())
-	{
-		double currTime = glfwGetTime();
-		deltaTime = (double) currTime - lastFrame;
-		lastFrame = (double) currTime;
+	while (!screen.shouldClose()) {
+		// calculate dt
+		double currentTime = glfwGetTime();
+		deltaTime = currentTime - lastFrame;
+		lastFrame = currentTime;
 
+		// process input
 		processInput(deltaTime);
 
+		// render
 		screen.update();
 
+		// draw shapes
 		shader.activate();
-		shader.set3Float("light.position", lamp.pos);
-		shader.set3Float("viewPos", cameras[activeCam].cameraPos);
 
+		shader.setFloat("mixVal", mixVal);
+		shader.set3Float("light.position", lamp.pos);
+		shader.set3Float("viewPos", Camera::defaultCamera.cameraPos);
+
+		// set light strengths
 		shader.set3Float("light.ambient", lamp.ambient);
 		shader.set3Float("light.diffuse", lamp.diffuse);
 		shader.set3Float("light.specular", lamp.specular);
 
-		// create transformation coordinaties
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// create transformation
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection = glm::mat4(1.0f);
-
-		view = cameras[activeCam].getViewMatrix();
-		projection = glm::perspective(glm::radians(cameras[activeCam].zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		view = Camera::defaultCamera.getViewMatrix();
+		projection = glm::perspective(
+			glm::radians(Camera::defaultCamera.zoom),
+			(float)Screen::SCR_WIDTH / (float)Screen::SCR_HEIGHT, 0.1f, 100.0f);
 
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
 
 		cube.render(shader);
+
 		lampShader.activate();
 		lampShader.setMat4("view", view);
 		lampShader.setMat4("projection", projection);
 		lamp.render(lampShader);
 
-		// send new frame to window.
+		// send new frame to window
 		screen.newFrame();
+		glfwPollEvents();
 	}
 
 	cube.cleanup();
 	lamp.cleanup();
 
 	glfwTerminate();
-
 	return 0;
 }
 
-
-void processInput(double dt)
-{
-	if (Keyboard::key(GLFW_KEY_ESCAPE))
-	{
+void processInput(double deltaTime) {
+	if (Keyboard::key(GLFW_KEY_ESCAPE)) {
 		screen.setShouldClose(true);
 	}
 
-	// moving cameras[activeCam].
-	if (Keyboard::key(GLFW_KEY_W))
-	{
-		cameras[activeCam].updateCameraPos(CameraDirection::FORWARD, dt);
-		
+	// change mix value
+	if (Keyboard::key(GLFW_KEY_UP)) {
+		mixVal += .05f;
+		if (mixVal > 1) {
+			mixVal = 1.0f;
+		}
+	}
+	if (Keyboard::key(GLFW_KEY_DOWN)) {
+		mixVal -= .05f;
+		if (mixVal < 0) {
+			mixVal = 0.0f;
+		}
 	}
 
-	if (Keyboard::key(GLFW_KEY_S))
-	{
-		cameras[activeCam].updateCameraPos(CameraDirection::BACKWARD, dt);
+	// move camera
+	if (Keyboard::key(GLFW_KEY_W)) {
+		Camera::defaultCamera.updateCameraPos(CameraDirection::FORWARD, deltaTime);
 	}
-
-	if (Keyboard::key(GLFW_KEY_A))
-	{
-		cameras[activeCam].updateCameraPos(CameraDirection::RIGHT, dt);
+	if (Keyboard::key(GLFW_KEY_S)) {
+		Camera::defaultCamera.updateCameraPos(CameraDirection::BACKWARD, deltaTime);
 	}
-
-	if (Keyboard::key(GLFW_KEY_D))
-	{
-		cameras[activeCam].updateCameraPos(CameraDirection::LEFT, dt);
+	if (Keyboard::key(GLFW_KEY_D)) {
+		Camera::defaultCamera.updateCameraPos(CameraDirection::RIGHT, deltaTime);
 	}
-
-
-	if (Keyboard::key(GLFW_KEY_SPACE))
-	{
-		cameras[activeCam].updateCameraPos(CameraDirection::DOWN, dt);
+	if (Keyboard::key(GLFW_KEY_A)) {
+		Camera::defaultCamera.updateCameraPos(CameraDirection::LEFT, deltaTime);
 	}
-
-	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT))
-	{
-		cameras[activeCam].updateCameraPos(CameraDirection::UP, dt);
+	if (Keyboard::key(GLFW_KEY_SPACE)) {
+		Camera::defaultCamera.updateCameraPos(CameraDirection::UP, deltaTime);
+	}
+	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) {
+		Camera::defaultCamera.updateCameraPos(CameraDirection::DOWN, deltaTime);
 	}
 
 	double dx = Mouse::getDx(), dy = Mouse::getDy();
@@ -183,20 +181,13 @@ void processInput(double dt)
 
 	if (dx != 0 || dy != 0)
 	{
-		cameras[activeCam].updateCameraDirection(dx, dy);
+		Camera::defaultCamera.updateCameraDirection(dx, dy);
 	}
 
 	double scrollDy = Mouse::getScrollDy();
 
 	if (scrollDy != 0)
 	{
-		cameras[activeCam].updateCameraZoom(scrollDy);
+		Camera::defaultCamera.updateCameraZoom(scrollDy);
 	}
-
-	if (Keyboard::keyDown(GLFW_KEY_TAB))
-	{
-		activeCam += (activeCam == 0) ? 1 : -1;
-	}
-
 }
-
