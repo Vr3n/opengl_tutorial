@@ -1,4 +1,5 @@
 #include "shader.h"
+#include <vector>
 
 Shader::Shader () {}
 
@@ -24,8 +25,8 @@ void Shader::generate(const char* vertexShaderPath, const char* fragmentShaderPa
 
 	if (!success)
 	{
-		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << "Error with vertex shader compilation: " << std::endl << infoLog << std::endl;
+		glGetProgramInfoLog(id, 512, NULL, infoLog);
+		std::cout << "Shader Linking error: " << std::endl << infoLog << std::endl;
 	}
 
 	glDeleteShader(vertexShader);
@@ -38,21 +39,20 @@ GLuint Shader::compileShader(const char* filepath, GLenum shaderType)
 	int success;
 	char infoLog[512];
 
-	GLuint shader_name = glCreateShader(shaderType);
-	std::string vertShaderSrc = loadShaderSrc(filepath);
-	const GLchar* vertShader = vertShaderSrc.c_str();
-	glShaderSource(shader_name, 1, &vertShader, NULL);
-	glCompileShader(shader_name);
+	GLuint ret = glCreateShader(shaderType);
+	std::string shaderSrc = loadShaderSrc(filepath);
+	const GLchar* shader = shaderSrc.c_str();
+	glShaderSource(ret, 1, &shader, NULL);
+	glCompileShader(ret);
 
-	glGetProgramiv(id, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << "Error with vertex shader compilation: " << std::endl << infoLog << std::endl;
+	// catch error
+	glGetShaderiv(ret, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(ret, 512, NULL, infoLog);
+		std::cout << "Error with shader comp.:" << std::endl << infoLog << std::endl;
 	}
 
-	return shader_name;
+	return ret;
 };
 
 
@@ -109,4 +109,12 @@ void Shader::set4Float(const std::string& name, float val1,float val2,float val3
 void Shader::setBool(const std::string& name, bool val)
 {
 	glUniform1i(glGetUniformLocation(id, name.c_str()), (int) val);
+}
+
+void Shader::set3Float(const std::string& name, float v1, float v2, float v3) {
+	glUniform3f(glGetUniformLocation(id, name.c_str()), v1, v2, v3);
+}
+
+void Shader::set3Float(const std::string& name, glm::vec3 v) {
+	glUniform3f(glGetUniformLocation(id, name.c_str()), v.x, v.y, v.z);
 }

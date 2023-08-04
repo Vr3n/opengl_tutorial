@@ -12,7 +12,7 @@
 class Model
 {
 public:
-	std::vector<Mesh> meshes;
+	Mesh mesh;
 
 	Model();
 
