@@ -16,7 +16,7 @@ struct PointLight
 	float k2;
 
 
-	void render(Shader shader);
+	void render(Shader shader, int idx);
 };
 
 
@@ -50,7 +50,7 @@ struct SpotLight
 	float k1;
 	float k2;
 
-	void render(Shader shader);
+	void render(Shader shader, int idx);
 
 
 }; 

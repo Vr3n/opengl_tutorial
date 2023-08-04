@@ -11,6 +11,7 @@ public:
 	// light strength values.
 	PointLight pointLight;
 
+	Lamp() {};
 
 	Lamp(
 		glm::vec3 lightColor,

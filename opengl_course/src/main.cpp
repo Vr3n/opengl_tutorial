@@ -69,8 +69,42 @@ int main() {
 	Shader lampShader("assets/object.vs", "assets/lamp.fs");
 
 	// MODELS==============================
-	Cube cube(Material::gold, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
-	cube.init();
+	glm::vec3 cubePositions[] = {
+			glm::vec3(0.0f,  0.0f,  0.0f),
+			glm::vec3(2.0f,  5.0f, -15.0f),
+			glm::vec3(-1.5f, -2.2f, -2.5f),
+			glm::vec3(-3.8f, -2.0f, -12.3f),
+			glm::vec3(2.4f, -0.4f, -3.5f),
+			glm::vec3(-1.7f,  3.0f, -7.5f),
+			glm::vec3(1.3f, -2.0f, -2.5f),
+			glm::vec3(1.5f,  2.0f, -2.5f),
+			glm::vec3(1.5f,  0.2f, -1.5f),
+			glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
+	Cube cubes[10];
+	for (unsigned int i = 0; i < 10; i++) {
+		cubes[i] = Cube(Material::gold, cubePositions[i], glm::vec3(1.0f));
+		cubes[i].init();
+	}
+
+	glm::vec3 pointLightPositions[] = {
+			glm::vec3(0.7f,  0.2f,  2.0f),
+			glm::vec3(2.3f, -3.3f, -4.0f),
+			glm::vec3(-4.0f,  2.0f, -12.0f),
+			glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+	Lamp lamps[4];
+	for (unsigned int i = 0; i < 4; i++) {
+		lamps[i] = Lamp(glm::vec3(1.0f),
+			glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f),
+			pointLightPositions[i], glm::vec3(0.25f), 1.0f, 0.07f, 0.032f);
+		lamps[i].init();
+	}
+
+
+	//Cube cube(Material::gold, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.75f));
+	//cube.init();
 
 	//DirLight dirLight = { glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.1f), glm::vec3(0.4f), glm::vec3(0.75f) };
 
@@ -87,12 +121,12 @@ int main() {
 		0.032f
 	};
 
-	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.0f), glm::vec3(2.0f),
-		1.0f,
-		0.07f,
-		0.032f
-		);
-	lamp.init();
+	//Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(-3.0f, -0.0f, -1.0f), glm::vec3(2.0f),
+	//	1.0f,
+	//	0.07f,
+	//	0.032f
+	//	);
+	//lamp.init();
 
 	mainJ.update();
 	if (mainJ.isPresent()) {
@@ -121,13 +155,20 @@ int main() {
 		//	glm::rotate(glm::mat4(1.0f), glm::radians(5.0f), glm::vec3(1.0f, 1.0f, 1.0f)) 
 		//	 * glm::vec4(dirLight.direction, 1.0f));
 
-		spotLight.position = Camera::defaultCamera.cameraPos;
-		spotLight.direction = Camera::defaultCamera.cameraFront;
-		spotLight.render(shader);
 
 		// set light strengths
-		//lamp.pointLight.render(shader);
 		//dirLight.render(shader);
+
+		for (int i = 0; i < 4; i++)
+		{
+			lamps[i].pointLight.render(shader, i);
+		}
+		shader.setInt("noPointLights", 4);
+
+		spotLight.position = Camera::defaultCamera.cameraPos;
+		spotLight.direction = Camera::defaultCamera.cameraFront;
+		spotLight.render(shader, 0);
+		shader.setInt("noSpotLights", 1);
 
 		// create transformation
 		glm::mat4 view = glm::mat4(1.0f);
@@ -140,12 +181,19 @@ int main() {
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
 
-		cube.render(shader);
+		for (int i = 0; i < 10; i++)
+		{
+			cubes[i].render(shader);
+		}
 
 		lampShader.activate();
 		lampShader.setMat4("view", view);
 		lampShader.setMat4("projection", projection);
-		lamp.render(lampShader);
+
+		for (int i = 0; i < 4; i++)
+		{
+			lamps[i].render(lampShader);
+		}
 
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -155,8 +203,15 @@ int main() {
 		glfwPollEvents();
 	}
 
-	cube.cleanup();
-	lamp.cleanup();
+	for (int i = 0; i < 10; i++)
+	{
+		cubes[i].cleanup();
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		lamps[i].cleanup();
+	}
 
 	glfwTerminate();
 	return 0;
