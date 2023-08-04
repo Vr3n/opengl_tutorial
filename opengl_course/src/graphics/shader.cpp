@@ -39,21 +39,20 @@ GLuint Shader::compileShader(const char* filepath, GLenum shaderType)
 	int success;
 	char infoLog[512];
 
-	GLuint shader_name = glCreateShader(shaderType);
-	std::string vertShaderSrc = loadShaderSrc(filepath);
-	const GLchar* vertShader = vertShaderSrc.c_str();
-	glShaderSource(shader_name, 1, &vertShader, NULL);
-	glCompileShader(shader_name);
+	GLuint ret = glCreateShader(shaderType);
+	std::string shaderSrc = loadShaderSrc(filepath);
+	const GLchar* shader = shaderSrc.c_str();
+	glShaderSource(ret, 1, &shader, NULL);
+	glCompileShader(ret);
 
-	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(id, 512, NULL, infoLog);
-		std::cout << "Error with shader compilation: " << std::endl << infoLog << std::endl;
+	// catch error
+	glGetShaderiv(ret, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(ret, 512, NULL, infoLog);
+		std::cout << "Error with shader comp.:" << std::endl << infoLog << std::endl;
 	}
 
-	return shader_name;
+	return ret;
 };
 
 
